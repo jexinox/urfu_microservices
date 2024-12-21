@@ -1,8 +1,12 @@
+using Elastic.Serilog.Sinks;
+using Gateway.Infrastructure;
 using Gateway.Notifications.Api;
 using MassTransit;
 using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.ConfigureLogging();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -18,11 +22,10 @@ builder.Services
     .AddOpenTelemetry()
     .WithMetrics(metricsBuilder =>
     {
-        metricsBuilder.AddPrometheusExporter();
         metricsBuilder
-            .AddMeter(
-                "Microsoft.AspNetCore.Hosting", 
-                "Microsoft.AspNetCore.Server.Kestrel");
+            .AddPrometheusExporter()
+            .AddAspNetCoreInstrumentation()
+            .AddProcessInstrumentation();
     });
 builder.Services.AddNotifications();
 
@@ -38,6 +41,8 @@ app.UseSwagger();
 app.UseSwaggerUI(); 
 
 app.UsePathBase("/api/v1");
-app.MapNotifications();
+app
+    .MapNotifications()
+    .MapPrometheusScrapingEndpoint();
 
 app.Run();
