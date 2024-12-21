@@ -3,22 +3,22 @@ using MassTransit;
 
 namespace Gateway.Notifications.Domain;
 
-public class BusNotificationHandler<TNotification>(
+public class BusNotificationPublisher<TNotification>(
     NotificationType notificationType,
     INotificationMapper<TNotification> mapper,
     IBus bus,
-    ILogger<BusNotificationHandler<TNotification>> logger) : INotificationHandler 
+    ILogger<BusNotificationPublisher<TNotification>> logger) : INotificationPublisher 
     where TNotification : class
 {
-    public bool ShouldHandle(NotificationType type) => type == notificationType;
+    public bool ShouldPublish(NotificationType type) => type == notificationType;
 
-    public async Task<Result<NotificationHandleError>> Handle(Notification notification)
+    public async Task<Result<NotificationPublishError>> Publish(NotificationEntity notification)
     {
         var notificationMapResult = mapper.Map(notification);
 
         if (notificationMapResult.TryGetFault(out var fault, out var outNotification))
         {
-            return new NotificationHandleError(NotificationHandleErrorType.InvalidData, fault.Message);
+            return new NotificationPublishError(NotificationPublishErrorType.InvalidData, fault.Message);
         }
 
         try
@@ -28,7 +28,7 @@ public class BusNotificationHandler<TNotification>(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to send notification of type {notificationType}", notificationType);
-            return new NotificationHandleError(NotificationHandleErrorType.TransportError);
+            return new NotificationPublishError(NotificationPublishErrorType.TransportError);
         }
         
         logger.LogInformation("Successfully sent notification of type {notificationType}", notificationType);

@@ -13,4 +13,5 @@ public enum RouteErrorType
 {
     InvalidData,
     TransportError,
+    RepositoryError,
 }

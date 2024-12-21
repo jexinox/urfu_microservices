@@ -4,7 +4,7 @@ namespace Gateway.Notifications.Domain;
 
 public interface INotificationMapper<T>
 {
-    Result<NotificationMapError, T> Map(Notification notification);
+    Result<NotificationMapError, T> Map(NotificationEntity entity);
 }
 
 public record NotificationMapError(string Message);

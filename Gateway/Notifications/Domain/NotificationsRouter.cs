@@ -1,34 +1,42 @@
+using Gateway.Notifications.Domain.Persistence;
 using Kontur.Results;
 
 namespace Gateway.Notifications.Domain;
 
-public class NotificationsRouter(IEnumerable<INotificationHandler> handlers) : INotificationsRouter
+public class NotificationsRouter(
+    IEnumerable<INotificationPublisher> publishers,
+    INotificationsRepository repository) : INotificationsRouter
 {
     public async Task<Result<RouteError>> Route(Notification notification)
     {
-        foreach (var handler in handlers)
+        foreach (var publisher in publishers)
         {
-            if (!handler.ShouldHandle(notification.Type))
+            if (!publisher.ShouldPublish(notification.Type))
             {
                 continue;
             }
-            
-            var handleResult = await handler.Handle(notification);
 
-            if (handleResult.TryGetFault(out var fault))
+            var createRecordResult = await repository.Create(notification);
+            if (createRecordResult.TryGetFault(out var createRecordFault, out var entity))
             {
-                return new RouteError(MapHandlerErrorType(fault.Type), fault.Message);
+                return new RouteError(RouteErrorType.RepositoryError, createRecordFault.ToString());
+            }
+            
+            var publishResult = await publisher.Publish(entity);
+            if (publishResult.TryGetFault(out var publishFault))
+            {
+                return new RouteError(MapHandlerErrorType(publishFault.Type), publishFault.Message);
             }
         }
 
         return Result.Succeed();
     }
 
-    private RouteErrorType MapHandlerErrorType(NotificationHandleErrorType handleErrorType) =>
-        handleErrorType switch
+    private RouteErrorType MapHandlerErrorType(NotificationPublishErrorType publishErrorType) =>
+        publishErrorType switch
         {
-            NotificationHandleErrorType.InvalidData => RouteErrorType.InvalidData,
-            NotificationHandleErrorType.TransportError => RouteErrorType.TransportError,
-            _ => throw new ArgumentOutOfRangeException(nameof(handleErrorType), handleErrorType, null)
+            NotificationPublishErrorType.InvalidData => RouteErrorType.InvalidData,
+            NotificationPublishErrorType.TransportError => RouteErrorType.TransportError,
+            _ => throw new ArgumentOutOfRangeException(nameof(publishErrorType), publishErrorType, null)
         };
 }

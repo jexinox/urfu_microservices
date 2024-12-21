@@ -1,4 +1,5 @@
 using System.Net.Mail;
+using Gateway.Models;
 using Kontur.Results;
 
 namespace Gateway.Notifications.Domain.Email;
@@ -9,9 +10,9 @@ public class EmailMapper : INotificationMapper<EmailNotification>
     private const string SubjectFieldName = "Subject";
     private const string BodyFieldName = "Body";
     
-    public Result<NotificationMapError, EmailNotification> Map(Notification notification)
+    public Result<NotificationMapError, EmailNotification> Map(NotificationEntity entity)
     {
-        var meta = notification.Metadata;
+        var meta = entity.Notification.Metadata;
 
         if (!meta.TryGetValue(AddressFieldName, out var addressRaw) ||
             !MailAddress.TryCreate(addressRaw, out var address))
@@ -29,6 +30,6 @@ public class EmailMapper : INotificationMapper<EmailNotification>
             return new NotificationMapError("Body is required");
         }
 
-        return new EmailNotification(address, subject, body);
+        return new EmailNotification(entity.Id, address, subject, body);
     }
 }

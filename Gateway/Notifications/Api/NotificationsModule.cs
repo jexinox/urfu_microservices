@@ -1,3 +1,4 @@
+using Gateway.Models;
 using Gateway.Notifications.Domain;
 using Gateway.Notifications.Domain.Email;
 using Gateway.Notifications.Domain.Sms;
@@ -14,18 +15,18 @@ public static class NotificationsModule
     {
         return services
             .AddSingleton<INotificationsRouter, NotificationsRouter>()
-            .AddSingleton<INotificationHandler, BusNotificationHandler<SmsNotification>>(sp =>
+            .AddSingleton<INotificationPublisher, BusNotificationPublisher<SmsNotification>>(sp =>
                 new(
                     DomainNotificationType.Sms,
                     sp.GetRequiredService<INotificationMapper<SmsNotification>>(),
                     sp.GetRequiredService<IBus>(),
-                    sp.GetRequiredService<ILogger<BusNotificationHandler<SmsNotification>>>()))
-            .AddSingleton<INotificationHandler, BusNotificationHandler<EmailNotification>>(sp =>
+                    sp.GetRequiredService<ILogger<BusNotificationPublisher<SmsNotification>>>()))
+            .AddSingleton<INotificationPublisher, BusNotificationPublisher<EmailNotification>>(sp =>
                 new(
                     DomainNotificationType.Email,
                     sp.GetRequiredService<INotificationMapper<EmailNotification>>(),
                     sp.GetRequiredService<IBus>(),
-                    sp.GetRequiredService<ILogger<BusNotificationHandler<EmailNotification>>>()))
+                    sp.GetRequiredService<ILogger<BusNotificationPublisher<EmailNotification>>>()))
             .AddSingleton<INotificationMapper<SmsNotification>, SmsMapper>()
             .AddSingleton<INotificationMapper<EmailNotification>, EmailMapper>();
     }

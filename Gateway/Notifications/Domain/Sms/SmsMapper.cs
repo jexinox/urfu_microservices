@@ -1,3 +1,4 @@
+using Gateway.Models;
 using Kontur.Results;
 
 namespace Gateway.Notifications.Domain.Sms;
@@ -7,9 +8,9 @@ public class SmsMapper : INotificationMapper<SmsNotification>
     private const string NumberFieldName = "Number";
     private const string MessageFieldName = "Message";
     
-    public Result<NotificationMapError, SmsNotification> Map(Notification notification)
+    public Result<NotificationMapError, SmsNotification> Map(NotificationEntity entity)
     {
-        var meta = notification.Metadata;
+        var meta = entity.Notification.Metadata;
 
         if (!meta.TryGetValue(NumberFieldName, out var number))
         {
@@ -21,6 +22,6 @@ public class SmsMapper : INotificationMapper<SmsNotification>
             return new NotificationMapError("Message is required");
         }
 
-        return new SmsNotification(number, message);
+        return new SmsNotification(entity.Id, number, message);
     }
 }
