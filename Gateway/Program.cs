@@ -1,4 +1,3 @@
-using Elastic.Serilog.Sinks;
 using Gateway.Infrastructure;
 using Gateway.Notifications.Api;
 using MassTransit;

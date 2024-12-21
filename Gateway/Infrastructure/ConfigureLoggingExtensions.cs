@@ -10,17 +10,21 @@ public static class ConfigureLoggingExtensions
     {
         applicationBuilder.Host.UseSerilog((context, loggerConfiguration) =>
         {
-            var config = new SerilogConfiguration();
-            context.Configuration.GetSection("Serilog").Bind(config);
+            var config = context.Configuration.GetSection("Serilog").Get<SerilogConfiguration>();
+
+            if (config is null)
+            {
+                throw new ApplicationException("Serilog configuration is missing");
+            }
             
             loggerConfiguration
                 .WriteTo.Console()
                 .WriteTo.Elasticsearch(
                     [new(config.Elasticsearch.Url)],
-                    configureTransport: options => 
-                        options
+                    configureTransport: transportConfiguration => 
+                        transportConfiguration
                             .Authentication(
-                                new BasicAuthentication(config.Elasticsearch.User, config.Elasticsearch.Password)));
+                                new BasicAuthentication(config.Elasticsearch.Username, config.Elasticsearch.Password)));
         });
         
         return applicationBuilder;
@@ -35,7 +39,7 @@ public static class ConfigureLoggingExtensions
     {
         public string Url { get; set; } = default!;
         
-        public string User { get; set; } = default!;
+        public string Username { get; set; } = default!;
         
         public string Password { get; set; } = default!;
     }

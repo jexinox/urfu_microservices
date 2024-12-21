@@ -31,6 +31,7 @@ public class BusNotificationHandler<TNotification>(
             return new NotificationHandleError(NotificationHandleErrorType.TransportError);
         }
         
+        logger.LogInformation("Successfully sent notification of type {notificationType}", notificationType);
         return Result.Succeed();
     }
 }
