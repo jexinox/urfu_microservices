@@ -1,6 +1,19 @@
 ﻿services:
   gateway:
     image: gateway
+    ports:
+      - "5036:8080"
     build:
       context: .
-      dockerfile: gateway/Dockerfile
+      dockerfile: Gateway/Dockerfile
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: masstransit/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=ntf
+      - RABBITMQ_DEFAULT_PASS=ntf
+    ports:
+      - "15672:15672"
+      - "5672:5672"

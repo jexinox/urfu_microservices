@@ -5,11 +5,16 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <RootNamespace>WebApplication1</RootNamespace>
+        <RootNamespace>Gateway</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Kontur.Results" Version="3.0.0" />
+        <PackageReference Include="Kontur.Results.Monad" Version="3.0.0" />
+        <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.4" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.8"/>
+        <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.10.0-beta.1" />
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.10.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0"/>
     </ItemGroup>
 
