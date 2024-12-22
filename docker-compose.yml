@@ -8,6 +8,14 @@
       dockerfile: Gateway/Dockerfile
     depends_on:
       - rabbitmq
+        
+  email:
+    image: email
+    build:
+      context: .
+      dockerfile: EmailDaemon/Dockerfile
+    depends_on:
+      - rabbitmq
 
   rabbitmq:
     image: masstransit/rabbitmq
@@ -53,3 +61,15 @@
       - "5601:5601"
     depends_on:
       - elasticsearch
+        
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: user-actions-simulator-backend
+    volumes:
+      - ./local/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro

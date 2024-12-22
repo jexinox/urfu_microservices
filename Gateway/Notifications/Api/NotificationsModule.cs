@@ -1,4 +1,6 @@
-using Gateway.Models;
+using Gateway.Infrastructure.Mongo;
+using Gateway.Infrastructure.Mongo.Configuration;
+using Gateway.QueueModels;
 using Gateway.Notifications.Domain;
 using Gateway.Notifications.Domain.Email;
 using Gateway.Notifications.Domain.Persistence;
@@ -6,6 +8,8 @@ using Gateway.Notifications.Domain.Sms;
 using MassTransit;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using DomainNotificationType = Gateway.Notifications.Domain.NotificationType;
 using DomainNotificationStatus = Gateway.Notifications.Domain.NotificationStatus;
 
@@ -30,7 +34,15 @@ public static class NotificationsModule
                     sp.GetRequiredService<IBus>(),
                     sp.GetRequiredService<ILogger<BusNotificationPublisher<EmailNotification>>>()))
             .AddSingleton<INotificationMapper<SmsNotification>, SmsMapper>()
-            .AddSingleton<INotificationMapper<EmailNotification>, EmailMapper>();
+            .AddSingleton<INotificationMapper<EmailNotification>, EmailMapper>()
+            .AddMongoClient()
+            .AddSingleton<INotificationsRepository, MongoNotificationsRepository>()
+            .AddOptions<MongoNotificationsRepositoryConfiguration>()
+            .BindConfiguration(MongoNotificationsRepositoryConfiguration.Section).Services
+            .AddSingleton<IMongoDatabase>(sp => 
+                sp
+                    .GetRequiredService<IMongoClient>()
+                    .GetDatabase(sp.GetRequiredService<IOptions<MongoOptions>>().Value.Database));
     }
 
     public static IEndpointRouteBuilder MapNotifications(this IEndpointRouteBuilder endpoints)
@@ -40,13 +52,17 @@ public static class NotificationsModule
             .WithOpenApi();
 
         endpoints
-            .MapGet("/notifications/{id}", HandleGetNotificationRequest)
+            .MapGet("/notifications/{id:guid}", HandleGetNotificationRequest)
             .WithOpenApi();
         
         return endpoints;
     }
 
-    private static async Task<Results<Ok<CreateNotificationResponse>, BadRequest<ApiError>, UnprocessableEntity<ApiError>>> 
+    private static async Task<Results<
+            Ok<CreateNotificationResponse>,
+            BadRequest<ApiError>,
+            UnprocessableEntity<ApiError>,
+            ProblemHttpResult>> 
         HandleCreateNotificationRequest(
             [FromBody] CreateNotificationRequest request, 
             [FromServices] INotificationsRouter router)
@@ -63,6 +79,11 @@ public static class NotificationsModule
         if (fault.Type is RouteErrorType.NoPossibleRoute)
         {
             return TypedResults.UnprocessableEntity(apiError);
+        }
+
+        if (fault.Type is RouteErrorType.RepositoryError)
+        {
+            return TypedResults.Problem();
         }
             
         return TypedResults.BadRequest(apiError);

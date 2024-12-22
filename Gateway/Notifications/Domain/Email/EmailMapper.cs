@@ -1,5 +1,5 @@
 using System.Net.Mail;
-using Gateway.Models;
+using Gateway.QueueModels;
 using Kontur.Results;
 
 namespace Gateway.Notifications.Domain.Email;
@@ -14,8 +14,8 @@ public class EmailMapper : INotificationMapper<EmailNotification>
     {
         var meta = entity.Notification.Metadata;
 
-        if (!meta.TryGetValue(AddressFieldName, out var addressRaw) ||
-            !MailAddress.TryCreate(addressRaw, out var address))
+        if (!meta.TryGetValue(AddressFieldName, out var address) ||
+            !MailAddress.TryCreate(address, out _))
         {
             return new NotificationMapError("Invalid email address");
         }

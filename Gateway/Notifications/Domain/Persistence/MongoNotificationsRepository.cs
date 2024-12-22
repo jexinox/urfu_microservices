@@ -1,5 +1,7 @@
 using Kontur.Results;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
 namespace Gateway.Notifications.Domain.Persistence;
@@ -88,11 +90,11 @@ public class MongoNotificationsRepository(
         IMongoDatabase mongoDatabase,
         IOptions<MongoNotificationsRepositoryConfiguration> config)
     {
-        return mongoDatabase.GetCollection<MongoNotification>(config.Value.CollectionName);
+        return mongoDatabase.GetCollection<MongoNotification>(config.Value.Collection);
     }
 
     private record MongoNotification(
-        Guid Id, 
+        [property: BsonGuidRepresentation(GuidRepresentation.Standard)] Guid Id, 
         MongoNotificationType Type,
         MongoNotificationStatus Status,
         IReadOnlyDictionary<string, string> Metadata);
@@ -110,5 +112,3 @@ public class MongoNotificationsRepository(
         Success,
     }
 }
-
-public record MongoNotificationsRepositoryConfiguration(string CollectionName);

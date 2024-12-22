@@ -31,7 +31,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Gateway.Models\Gateway.Models.csproj" />
+      <ProjectReference Include="..\Gateway.QueueModels\Gateway.QueueModels.csproj" />
     </ItemGroup>
 
 </Project>

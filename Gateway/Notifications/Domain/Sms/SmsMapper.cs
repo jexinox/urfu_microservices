@@ -1,4 +1,4 @@
-using Gateway.Models;
+using Gateway.QueueModels;
 using Kontur.Results;
 
 namespace Gateway.Notifications.Domain.Sms;
