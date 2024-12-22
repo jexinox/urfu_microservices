@@ -19,7 +19,7 @@ public class MongoNotificationsRepository(
             var mapped = Map(notification);
             await collection.InsertOneAsync(mapped);
 
-            return new NotificationEntity(mapped.Id, notification);
+            return new NotificationEntity(mapped.Id, Map(mapped.Status), notification);
         }
         catch (MongoException ex)
         {
@@ -60,7 +60,7 @@ public class MongoNotificationsRepository(
             _ => throw new ArgumentOutOfRangeException(nameof(notification), notification, null),
         };
 
-        return new(Guid.NewGuid(), type, notification.Metadata);
+        return new(Guid.NewGuid(), type, MongoNotificationStatus.Created, notification.Metadata);
     }
 
     private static NotificationEntity Map(MongoNotification mongoNotification)
@@ -72,8 +72,17 @@ public class MongoNotificationsRepository(
             _ => throw new ArgumentOutOfRangeException(nameof(mongoNotification), mongoNotification, null),
         };
         
-        return new(mongoNotification.Id, new(type, mongoNotification.Metadata));
+        return new(mongoNotification.Id, Map(mongoNotification.Status), new(type, mongoNotification.Metadata));
     }
+
+    private static NotificationStatus Map(MongoNotificationStatus mongoNotificationStatus) =>
+        mongoNotificationStatus switch
+        {
+            MongoNotificationStatus.Created => NotificationStatus.Created,
+            MongoNotificationStatus.Fail => NotificationStatus.Fail,
+            MongoNotificationStatus.Success => NotificationStatus.Success,
+            _ => throw new ArgumentOutOfRangeException(nameof(mongoNotificationStatus), mongoNotificationStatus, null),
+        };
 
     private static IMongoCollection<MongoNotification> GetNotificationsCollection(
         IMongoDatabase mongoDatabase,
@@ -85,12 +94,20 @@ public class MongoNotificationsRepository(
     private record MongoNotification(
         Guid Id, 
         MongoNotificationType Type,
+        MongoNotificationStatus Status,
         IReadOnlyDictionary<string, string> Metadata);
 
     private enum MongoNotificationType
     {
         Sms,
         Email,
+    }
+
+    private enum MongoNotificationStatus
+    {
+        Created,
+        Fail,
+        Success,
     }
 }
 

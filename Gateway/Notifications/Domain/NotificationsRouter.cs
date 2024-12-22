@@ -7,19 +7,20 @@ public class NotificationsRouter(
     IEnumerable<INotificationPublisher> publishers,
     INotificationsRepository repository) : INotificationsRouter
 {
-    public async Task<Result<RouteError>> Route(Notification notification)
+    public async Task<Result<RouteError, Guid>> Route(Notification notification)
     {
+        var createRecordResult = await repository.Create(notification);
+        if (createRecordResult.TryGetFault(out var createRecordFault, out var entity))
+        {
+            return new RouteError(RouteErrorType.RepositoryError, createRecordFault.ToString());
+        }
+
+        var routed = false;
         foreach (var publisher in publishers)
         {
             if (!publisher.ShouldPublish(notification.Type))
             {
                 continue;
-            }
-
-            var createRecordResult = await repository.Create(notification);
-            if (createRecordResult.TryGetFault(out var createRecordFault, out var entity))
-            {
-                return new RouteError(RouteErrorType.RepositoryError, createRecordFault.ToString());
             }
             
             var publishResult = await publisher.Publish(entity);
@@ -27,9 +28,16 @@ public class NotificationsRouter(
             {
                 return new RouteError(MapHandlerErrorType(publishFault.Type), publishFault.Message);
             }
+
+            routed = true;
         }
 
-        return Result.Succeed();
+        if (!routed)
+        {
+            return new RouteError(RouteErrorType.NoPossibleRoute, "No possible route found");
+        }
+
+        return entity.Id;
     }
 
     private RouteErrorType MapHandlerErrorType(NotificationPublishErrorType publishErrorType) =>
