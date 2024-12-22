@@ -1,4 +1,3 @@
-using System.Text;
 using Gateway.QueueModels;
 using MassTransit;
 
@@ -8,13 +7,8 @@ public class EmailNotificationsErrorConsumer(ILogger<EmailNotificationsConsumer>
 {
     public Task Consume(ConsumeContext<Fault<EmailNotification>> context)
     {
-        var errors = new StringBuilder();
-        foreach (var exception in context.Message.Exceptions)
-        {
-            errors.AppendLine(exception.Message);
-        }
-        
-        logger.LogError("Email notification error received, {error}", errors.ToString());
+        var errors = string.Join(Environment.NewLine, context.Message.Exceptions.Select(e => e.Message));
+        logger.LogError("Email notification error received, {errors}", errors);
         return Task.CompletedTask;
     }
 }

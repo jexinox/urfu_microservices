@@ -1,22 +1,10 @@
 using System.Reflection;
-using System.Text.Json.Serialization;
-using Gateway.Infrastructure;
-using Gateway.Notifications.Api;
 using MassTransit;
-using Microsoft.AspNetCore.Mvc;
 using OpenTelemetry.Metrics;
+using SmsDaemon.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
-
 builder.ConfigureLogging();
-
-builder.Services.ConfigureHttpJsonOptions(
-    options => options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-builder.Services.Configure<JsonOptions>(
-    options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddMassTransit(massTransit =>
 {
     massTransit.SetKebabCaseEndpointNameFormatter();
@@ -38,21 +26,8 @@ builder.Services
             .AddAspNetCoreInstrumentation()
             .AddProcessInstrumentation();
     });
-builder.Services.AddNotifications();
-
-builder.Host.UseDefaultServiceProvider(options =>
-{
-    options.ValidateOnBuild = true;
-    options.ValidateScopes = true;
-});
 
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI(); 
-
-app
-    .MapNotifications()
-    .MapPrometheusScrapingEndpoint();
-
+app.MapPrometheusScrapingEndpoint();
 app.Run();

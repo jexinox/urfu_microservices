@@ -16,6 +16,14 @@
       dockerfile: EmailDaemon/Dockerfile
     depends_on:
       - rabbitmq
+  
+  sms:
+    image: sms
+    build:
+      context: .
+      dockerfile: SmsDaemon/Dockerfile
+    depends_on:
+      - rabbitmq
 
   rabbitmq:
     image: masstransit/rabbitmq
@@ -73,3 +81,8 @@
       MONGO_INITDB_DATABASE: user-actions-simulator-backend
     volumes:
       - ./local/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+  
+  grafana:
+    image: grafana/grafana-enterprise
+    ports:
+      - "3000:3000"
