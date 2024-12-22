@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		docker-compose.yml = docker-compose.yml
 		prometheus.yml = prometheus.yml
 		.gitignore = .gitignore
+		readme.md = readme.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gateway.QueueModels", "Gateway.QueueModels\Gateway.QueueModels.csproj", "{3F462A30-F91E-4AF6-A96C-C7A4970D1744}"
@@ -22,6 +23,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailDaemon", "EmailDaemon\EmailDaemon.csproj", "{0E33B503-EDCC-4DD7-991C-5F457E82E8E2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmsDaemon", "SmsDaemon\SmsDaemon.csproj", "{59B0B5DD-7334-498E-8EB0-BEB269699A9D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{6FAB9E9F-AE13-4394-BA71-E93F8D07AB20}"
+	ProjectSection(SolutionItems) = preProject
+		docs\doc.md = docs\doc.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,5 +57,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{E3012396-7070-4D53-9CAD-0E7C7C849F73} = {06E98E62-674E-4682-AFB0-BAD9683E2DA5}
+		{6FAB9E9F-AE13-4394-BA71-E93F8D07AB20} = {06E98E62-674E-4682-AFB0-BAD9683E2DA5}
 	EndGlobalSection
 EndGlobal

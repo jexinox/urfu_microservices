@@ -9,7 +9,7 @@ public class SmsNotificationsConsumer(ILogger<SmsNotificationsConsumer> logger, 
     {
         var message = context.Message;
         logger.LogInformation(
-            "Sms notification received, phone number: {phone}, message: {message}",
+            "Sms notification received, phone number: {phone}, message: {smsMessage}",
             message.Number,
             message.Message);
         await bus.Publish(new NotificationStatusChange(message.Id, NewNotificationStatus.Success));
