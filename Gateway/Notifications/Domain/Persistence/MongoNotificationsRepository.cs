@@ -1,3 +1,4 @@
+using Gateway.QueueModels;
 using Kontur.Results;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
@@ -53,6 +54,29 @@ public class MongoNotificationsRepository(
         }
     }
 
+    public async Task<Result<NotificationsRepositoryChangeStatusError>> ChangeStatus(Guid notificationId, NotificationStatus status)
+    {
+        try
+        {
+            var collection = notificationsCollection.Value;
+            var filter = Builders<MongoNotification>.Filter.Eq(notification => notification.Id, notificationId);
+            var update = Builders<MongoNotification>.Update.Set(notification => notification.Status, Map(status));
+            var updateResult = await collection.UpdateOneAsync(filter, update);
+
+            if (updateResult.ModifiedCount == 0)
+            {
+                return NotificationsRepositoryChangeStatusError.NotFound;
+            }
+
+            return Result.Succeed();
+        }
+        catch (MongoException ex)
+        {
+            logger.LogError(ex, "Error while changing notification state, id {notificationId}", notificationId);
+            return NotificationsRepositoryChangeStatusError.DatabaseError;
+        }
+    }
+
     private static MongoNotification Map(Notification notification)
     {
         var type = notification.Type switch
@@ -83,6 +107,15 @@ public class MongoNotificationsRepository(
             MongoNotificationStatus.Created => NotificationStatus.Created,
             MongoNotificationStatus.Fail => NotificationStatus.Fail,
             MongoNotificationStatus.Success => NotificationStatus.Success,
+            _ => throw new ArgumentOutOfRangeException(nameof(mongoNotificationStatus), mongoNotificationStatus, null),
+        };
+    
+    private static MongoNotificationStatus Map(NotificationStatus mongoNotificationStatus) =>
+        mongoNotificationStatus switch
+        {
+            NotificationStatus.Created => MongoNotificationStatus.Created,
+            NotificationStatus.Fail => MongoNotificationStatus.Fail,
+            NotificationStatus.Success => MongoNotificationStatus.Success,
             _ => throw new ArgumentOutOfRangeException(nameof(mongoNotificationStatus), mongoNotificationStatus, null),
         };
 

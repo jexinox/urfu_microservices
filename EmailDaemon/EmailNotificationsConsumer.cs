@@ -3,11 +3,16 @@ using MassTransit;
 
 namespace EmailDaemon;
 
-public class EmailNotificationsConsumer(ILogger<EmailNotificationsConsumer> logger) : IConsumer<EmailNotification>
+public class EmailNotificationsConsumer(ILogger<EmailNotificationsConsumer> logger, IBus bus) : IConsumer<EmailNotification>
 {
-    public Task Consume(ConsumeContext<EmailNotification> context)
+    public async Task Consume(ConsumeContext<EmailNotification> context)
     {
-        logger.LogInformation("Email notification received");
-        return Task.CompletedTask;
+        var message = context.Message;
+        logger.LogInformation(
+            "Email notification received, address: {address}, subject: {subject}, body: {body}",
+            message.Address,
+            message.Subject,
+            message.Body);
+        await bus.Publish(new NotificationStatusChange(message.Id, NewNotificationStatus.Success));
     }
 }
